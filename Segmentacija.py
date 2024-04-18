@@ -31,7 +31,7 @@ df['M_Rank'] = pd.qcut(df['Monetary'], q=5, labels=[5,4,3,2,1])
 # Računamo finalnu RFM promenljivu kao prosek gorenavedenih rangova.
 
 df['RFM_Score'] = (df['R_Rank'].astype(int) + df['F_Rank'].astype(int) + df['M_Rank'].astype(int))/3
-# Zamena autlajera za godine klijenta
+# Zamena autlajera za godine klijenta srednjom vrednošću
 
 Q1 = df['god_klijenta'].quantile(0.25)
 Q3 = df['god_klijenta'].quantile(0.75)
@@ -39,7 +39,7 @@ IQR = Q3 - Q1
 #print(IQR, Q1 , Q3)
 
 autlajeri = (df['god_klijenta'] < (Q1 - 1.5 * IQR)) | (df['god_klijenta'] > (Q3 + 1.5 * IQR))
-# Zamenjivanje autlajera srednjom vrednošću
+
 df_clean = df.copy()
 df_clean['god_klijenta'] = df['god_klijenta'].mask(autlajeri, df['god_klijenta'].mean())
 # Delimo klijente u 7 grupa na osnovu godina
@@ -63,16 +63,17 @@ plt.ylabel('Gustina verovatnoće')
 plt.title('Histogram')
 plt.show()
 
-# Lista za čuvanje vrednosti Siluet indeksa
+# Računamo koeficijent siluete za različiti broj klastera
+
 silhouette_scores = []
 
-# Pokušajte različite brojeve klastera i izračunajte Siluet indeks
+
 for i in range(2, 11):
     model = AgglomerativeClustering(n_clusters=i, linkage='average')  # Može biti bilo koja metoda klasterovanja
     labels2 = model.fit_predict(data)
     silhouette_scores.append(silhouette_score(data, labels2))
 
-# Prikazivanje rezultata Siluet indeksa
+# Grafički prikaz koeficijent siluete
 plt.plot(range(2, 11), silhouette_scores)
 plt.title('Koeficijent siluete za hijerarhijsko klasterovanje')
 plt.xlabel('Broj klastera')
@@ -121,7 +122,6 @@ cluster_stats = df_clean.groupby('Cluster').agg({'RFM_Score': ['min', 'max'],
 print(cluster_stats)
 
 
-# Pretpostavimo da imamo dva klasterovanja dobijena različitim metodama
-# Računanje Rand indeksa
+# Upoređivanje svake dve metode klasterovanja pomoću Rand indeksa tako da veće vrednosti ukazuju na veću sličnost metoda
 rand_index = adjusted_rand_score(labels_a, labels_b)
 print("Rand indeks:", rand_index)
