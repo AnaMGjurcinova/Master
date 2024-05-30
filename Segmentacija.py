@@ -8,10 +8,31 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import silhouette_score
 
-
 # Učitavanje podataka
 
-df = pd.read_excel(r"C:\Users\agjur\Desktop\AnaMarija.xlsx")
+df = pd.read_excel(r"C:\Users\agjur\Desktop\Podaci.xlsx")
+
+# Zamena autlajera za godine klijenta, za promenljive R, F i M je to već urađeno
+
+Q1 = df['god_klijenta'].quantile(0.25)
+Q3 = df['god_klijenta'].quantile(0.75)
+IQR = Q3 - Q1
+#print(IQR, Q1 , Q3)
+
+autlajeri = (df['god_klijenta'] < (Q1 - 1.5 * IQR)) | (df['god_klijenta'] > (Q3 + 1.5 * IQR))
+# Zamenjivanje autlajera srednjom vrednošću
+df_clean = df.copy()
+df_clean['god_klijenta'] = df['god_klijenta'].mask(autlajeri, df['god_klijenta'].mean())
+
+
+# Histogram gustine
+
+plt.hist(df_clean['god_klijenta'], density=True)
+plt.xlabel('Godine')
+plt.ylabel('Gustina verovatnoće')
+plt.title('Histogram')
+plt.show()
+
 
 # Cilj je da podelimo klijente na različite rangove za svaku od tri promenljive: Recency (R), Frequency (F), i Monetary (M).
 # Ovaj proces pomaže da se identifikuju klijenti koji su ostvarili više transakcija (veća vrednost promenljive Frequency)
@@ -31,49 +52,23 @@ df['M_Rank'] = pd.qcut(df['Monetary'], q=5, labels=[5,4,3,2,1])
 # Računamo finalnu RFM promenljivu kao prosek gorenavedenih rangova.
 
 df['RFM_Score'] = (df['R_Rank'].astype(int) + df['F_Rank'].astype(int) + df['M_Rank'].astype(int))/3
-# Zamena autlajera za godine klijenta
 
-Q1 = df['god_klijenta'].quantile(0.25)
-Q3 = df['god_klijenta'].quantile(0.75)
-IQR = Q3 - Q1
-#print(IQR, Q1 , Q3)
-
-autlajeri = (df['god_klijenta'] < (Q1 - 1.5 * IQR)) | (df['god_klijenta'] > (Q3 + 1.5 * IQR))
-# Zamenjivanje autlajera srednjom vrednošću
-df_clean = df.copy()
-df_clean['god_klijenta'] = df['god_klijenta'].mask(autlajeri, df['god_klijenta'].mean())
-# Delimo klijente u 7 grupa na osnovu godina
-df_clean['age_group'] = np.where(df_clean['god_klijenta'] <= 25, 1,
-                            np.where((df_clean['god_klijenta'] > 25) & (df_clean['god_klijenta'] <= 35), 2,
-                            np.where((df_clean['god_klijenta'] > 35) & (df_clean['god_klijenta'] <= 40), 3,
-                            np.where((df_clean['god_klijenta'] > 40) & (df_clean['god_klijenta'] <= 45), 4,
-                            np.where((df_clean['god_klijenta'] > 45) & (df_clean['god_klijenta'] <= 55), 5,
-                            np.where((df_clean['god_klijenta'] > 55) & (df_clean['god_klijenta'] <= 65), 6,
-                             7))))))
 
 # Pripremamo uzorak za klasterovanja na osnovu RFM promenljive i godina
 
-data = df_clean[['RFM_Score', 'age_group']]
-
-# Histogram gustine
-
-plt.hist(df_clean['god_klijenta'], density=True)
-plt.xlabel('Godine')
-plt.ylabel('Gustina verovatnoće')
-plt.title('Histogram')
-plt.show()
+data = df_clean[['RFM_Score', 'age']]
 
 # Lista za čuvanje vrednosti Siluet indeksa
 silhouette_scores = []
 
 # Pokušajte različite brojeve klastera i izračunajte Siluet indeks
-for i in range(2, 11):
+for i in range(2, 5):
     model = AgglomerativeClustering(n_clusters=i, linkage='average')  # Može biti bilo koja metoda klasterovanja
     labels2 = model.fit_predict(data)
     silhouette_scores.append(silhouette_score(data, labels2))
 
 # Prikazivanje rezultata Siluet indeksa
-plt.plot(range(2, 11), silhouette_scores)
+plt.plot(range(2, 5), silhouette_scores)
 plt.title('Koeficijent siluete za hijerarhijsko klasterovanje')
 plt.xlabel('Broj klastera')
 plt.ylabel('Koeficijent siluete')
@@ -116,7 +111,6 @@ cluster_stats = df_clean.groupby('Cluster').agg({'RFM_Score': ['min', 'max'],
                                                  'Flag_Last3M' : 'sum',
                                                  'Cluster' : 'count'
                                                 })
-
 
 print(cluster_stats)
 
