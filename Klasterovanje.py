@@ -63,7 +63,7 @@ silhouette_scores = []
 
 # Pokušajte različite brojeve klastera i izračunajte Siluet indeks
 for i in range(2, 11):
-    model = AgglomerativeClustering(n_clusters=i, linkage='average')  # Može biti bilo koja metoda klasterovanja
+    model = AgglomerativeClustering(n_clusters=i, linkage='average') 
     labels2 = model.fit_predict(data)
     silhouette_scores.append(silhouette_score(data, labels2))
     print(silhouette_score(data, labels2))
