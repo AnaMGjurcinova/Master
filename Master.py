@@ -44,13 +44,6 @@ autlajeri = (df['god_klijenta'] < (Q1 - 1.5 * IQR)) | (df['god_klijenta'] > (Q3 
 df_clean = df.copy()
 df_clean['god_klijenta'] = df['god_klijenta'].mask(autlajeri, df['god_klijenta'].mean())
 # Delimo klijente u 7 grupa na osnovu godina
-df_clean['age_group'] = np.where(df_clean['god_klijenta'] <= 25, 1,
-                            np.where((df_clean['god_klijenta'] > 25) & (df_clean['god_klijenta'] <= 35), 2,
-                            np.where((df_clean['god_klijenta'] > 35) & (df_clean['god_klijenta'] <= 40), 3,
-                            np.where((df_clean['god_klijenta'] > 40) & (df_clean['god_klijenta'] <= 45), 4,
-                            np.where((df_clean['god_klijenta'] > 45) & (df_clean['god_klijenta'] <= 55), 5,
-                            np.where((df_clean['god_klijenta'] > 55) & (df_clean['god_klijenta'] <= 65), 6,
-                             7))))))
 
 # Pripremamo uzorak za klasterovanja na osnovu RFM promenljive i godina
 
