@@ -9,6 +9,7 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import silhouette_score
 
 
+
 # Učitavanje podataka
 
 df = pd.read_excel(r"C:\Users\agjur\Desktop\AnaMarija.xlsx")
