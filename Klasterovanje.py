@@ -22,7 +22,7 @@ IQR = Q3 - Q1
 #print(IQR, Q1 , Q3)
 
 autlajeri = (df['god_klijenta'] < (Q1 - 1.5 * IQR)) | (df['god_klijenta'] > (Q3 + 1.5 * IQR))
-# Zamenjivanje autlajera srednjom vrednošću
+# Zamena autlajera srednjom vrednošću
 df_clean = df.copy()
 df_clean['god_klijenta'] = df['god_klijenta'].mask(autlajeri, df['god_klijenta'].mean())
 
@@ -54,7 +54,7 @@ df_clean['M_Rank'] = pd.qcut(df_clean['Monetary'], q=5, labels=[5,4,3,2,1])
 
 df_clean['RFM_Score'] = (df_clean['R_Rank'].astype(int) + df_clean['F_Rank'].astype(int) + df_clean['M_Rank'].astype(int))/3
 
-# Pripremamo uzorak za klasterovanja na osnovu RFM promenljive i godina
+# Pripremamo uzorak za klasterovanja na osnovu RFM promenljive i godine
 
 data = df_clean[['RFM_Score', 'age']]
 
@@ -75,7 +75,7 @@ plt.xlabel('Broj klastera')
 plt.ylabel('Koeficijent siluete')
 plt.show()
 
-# Primena metode hijerahijskog klasterovanja
+# Primena metoda hijerahijskog klasterovanja
 
 # Vardova metoda
 hierarchical_cluster_a = AgglomerativeClustering(n_clusters=4, metric='euclidean', linkage='ward')
