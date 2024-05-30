@@ -13,7 +13,7 @@ from sklearn.metrics import silhouette_score
 
 df = pd.read_excel(r"C:\Users\agjur\Desktop\AnaMarija.xlsx")
 
-# Cilj je da podelimo klijente na različite rangove za svaku od tri promenljive: Recency (R), Frequency (F), i Monetary (M).
+# Cilj je da podelimo klijente na različite rangove za svaku promenljivu: Recency (R), Frequency (F), i Monetary (M).
 # Ovaj proces pomaže da se identifikuju klijenti koji su ostvarili više transakcija (veća vrednost promenljive Frequency)
 # sa većim iznosima (manja vrednost promenljiive Monetary) u kraćim vremenskim intervalima (manja vrednost promenljiive Recency).
 
@@ -42,18 +42,10 @@ autlajeri = (df['god_klijenta'] < (Q1 - 1.5 * IQR)) | (df['god_klijenta'] > (Q3 
 # Zamenjivanje autlajera srednjom vrednošću
 df_clean = df.copy()
 df_clean['god_klijenta'] = df['god_klijenta'].mask(autlajeri, df['god_klijenta'].mean())
-# Delimo klijente u 7 grupa na osnovu godina
-df_clean['age_group'] = np.where(df_clean['god_klijenta'] <= 25, 1,
-                            np.where((df_clean['god_klijenta'] > 25) & (df_clean['god_klijenta'] <= 35), 2,
-                            np.where((df_clean['god_klijenta'] > 35) & (df_clean['god_klijenta'] <= 40), 3,
-                            np.where((df_clean['god_klijenta'] > 40) & (df_clean['god_klijenta'] <= 45), 4,
-                            np.where((df_clean['god_klijenta'] > 45) & (df_clean['god_klijenta'] <= 55), 5,
-                            np.where((df_clean['god_klijenta'] > 55) & (df_clean['god_klijenta'] <= 65), 6,
-                             7))))))
 
 # Pripremamo uzorak za klasterovanja na osnovu RFM promenljive i godina
 
-data = df_clean[['RFM_Score', 'age_group']]
+data = df_clean[['RFM_Score', 'age']]
 
 # Histogram gustine
 
@@ -85,6 +77,7 @@ plt.show()
 hierarchical_cluster_a = AgglomerativeClustering(n_clusters=4, metric='euclidean', linkage='ward')
 hierarchical_cluster_a.fit(data)
 labels_a = hierarchical_cluster_a.labels_
+
 # Metoda potpunog vezivanja
 hierarchical_cluster_b = AgglomerativeClustering(n_clusters=4, metric='euclidean', linkage='complete')
 hierarchical_cluster_b.fit(data)
@@ -110,8 +103,8 @@ for cluster_id, count in enumerate(cluster_counts):
 df_clean['Cluster'] = hierarchical_cluster_d.labels_ # Možemo da zamenimo a, b, c ili d u zavisnosti sa kojom metodom radimo
 
 # Statistike klastera
-cluster_stats = df_clean.groupby('Cluster').agg({'RFM_Score': ['min', 'max'],
-                                                 'god_klijenta': ['min', 'max'],
+cluster_stats = df_clean.groupby('Cluster').agg({'RFM_Score': ['mean' ],
+                                                 'god_klijenta': [ 'mean'],
                                                  'Flag_LastM': 'sum',
                                                  'Flag_Last3M' : 'sum',
                                                  'Cluster' : 'count'
@@ -123,5 +116,5 @@ print(cluster_stats)
 
 # Pretpostavimo da imamo dva klasterovanja dobijena različitim metodama
 # Računanje Rand indeksa
-rand_index = adjusted_rand_score(labels_a, labels_b)
+rand_index = adjusted_rand_score(labels_d, labels_b)
 print("Rand indeks:", rand_index)
